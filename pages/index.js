@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Head from "next/head";
 import useSWR from "swr";
 import { Chart } from "chart.js/auto";
 import { Line } from "react-chartjs-2";
@@ -21,8 +21,7 @@ export default function Home() {
   const formHandler = useCallback(
     () => (event) => {
       event.preventDefault();
-
-      console.log("dayformref", dayFormRef.current?.value);
+      // console.log("dayformref", dayFormRef.current?.value);
       setDayrange(dayFormRef.current?.value);
     },
     []
@@ -33,11 +32,24 @@ export default function Home() {
     recoveredData = {};
 
   if (isLoading) {
-    return <span>Loading</span>;
+    return (
+      <div className="flex flex-col min-h-screen justify-center items-center">
+        <h1 className="text-center font-bold text-2xl text-slate-500">
+          กำลังโหลด...
+        </h1>
+      </div>
+    );
   }
 
   if (error) {
-    return <span>{JSON.stringify(error.code)}</span>;
+    console.log({ error });
+    return (
+      <div className="flex flex-col min-h-screen justify-center items-center">
+        <h1 className="text-center font-bold text-xl text-red-500">
+          ไม่สามารถโหลดข้อมูลได้ กรุณารีเฟรชหน้าเว็บ
+        </h1>
+      </div>
+    );
   }
 
   casesData.label = Object.keys(data.cases);
@@ -49,6 +61,8 @@ export default function Home() {
       {
         label: "cases",
         data: casesData.value,
+        borderColor: "#ef4444",
+        backgroundColor: "#ef4444",
       },
     ],
   };
@@ -62,6 +76,8 @@ export default function Home() {
       {
         label: "deaths",
         data: deathsData.value,
+        borderColor: "#64748b",
+        backgroundColor: "#64748b",
       },
     ],
   };
@@ -75,96 +91,143 @@ export default function Home() {
       {
         label: "recovered",
         data: recoveredData.value,
+        borderColor: "#3b82f6",
+        backgroundColor: "#3b82f6",
       },
     ],
   };
 
   return (
-    <main className={`container px-2 sm:px-4 mx-auto ${sarabun.className}`}>
-      <div className="fixed top-0 right-0 m-8 p-3 text-xs font-mono text-white h-6 w-6 rounded-full flex items-center justify-center bg-gray-700 sm:bg-pink-500 md:bg-orange-500 lg:bg-green-500 xl:bg-blue-500">
-        <div className="block  sm:hidden md:hidden lg:hidden xl:hidden">xs</div>
-        <div className="hidden sm:block  md:hidden lg:hidden xl:hidden">sm</div>
-        <div className="hidden sm:hidden md:block  lg:hidden xl:hidden">md</div>
-        <div className="hidden sm:hidden md:hidden lg:block  xl:hidden">lg</div>
-        <div className="hidden sm:hidden md:hidden lg:hidden xl:block">xl</div>
-      </div>
+    <>
+      <Head>
+        <title>สถิติผู้ป่วย - HealthBoard</title>
+      </Head>
+      <main
+        className={`lg:container px-2 sm:px-4 mx-auto ${sarabun.className}`}
+      >
 
-      <div className="flex flex-row gap-2 my-4">
-        <button onClick={() => setDayrange(10)}>15 days</button>
-        <button onClick={() => setDayrange(30)}>30 days</button>
-        <button onClick={() => setDayrange(90)}>90 days</button>
-        <form onSubmit={formHandler()}>
-          <input type="number" ref={dayFormRef} className="border" />
-          <input type="submit" />
-        </form>
-      </div>
+        <div className="flex flex-col sm:flex-row flex-wrap gap-2 my-4 ">
+          <div className="flex items-center basis-full lg:basis-auto">
+            <h1 className="items-center text-2xl h-fit">
+              สถิติผู้ป่วย COVID-19 ทั่วโลก
+            </h1>
+          </div>
+          <div className="flex flex-row gap-2 flex-wrap">
+            <button
+              onClick={() => setDayrange(15)}
+              className={
+                `flex-1 btn ` + (dayRange == 15 ? "btn-active btn-primary" : "")
+              }
+            >
+              15 วัน
+            </button>
+            <button
+              onClick={() => setDayrange(30)}
+              className={
+                `flex-1 btn ` + (dayRange == 30 ? "btn-active btn-primary" : "")
+              }
+            >
+              30 วัน
+            </button>
+            <button
+              onClick={() => setDayrange(90)}
+              className={
+                `flex-1 btn ` + (dayRange == 90 ? "btn-active btn-primary" : "")
+              }
+            >
+              90 วัน
+            </button>
+          </div>
+          <form onSubmit={formHandler()} className="flex flex-row gap-2">
+            <input
+              type="number"
+              ref={dayFormRef}
+              placeholder="จำนวนวัน"
+              className="flex-1 input input-bordered"
+            />
+            <button type="submit" className="btn">
+              เปลี่ยน
+            </button>
+          </form>
+        </div>
 
-      <div className="flex flex-col sm:flex-row flex-wrap gap-2 my-4">
-        <ValueCard
-          label={"ติดเชื้อ"}
-          timestamp={casesData["label"].slice(-1)}
-          value={casesData["value"].slice(-1)}
-          className={"bg-red-400"}
-        />
-        <ValueCard
-          label={"เสียชีวิต"}
-          timestamp={deathsData["label"].slice(-1)}
-          value={deathsData["value"].slice(-1)}
-          className={"bg-slate-400"}
-        />
-        <ValueCard
-          label={"หายแล้ว"}
-          timestamp={recoveredData["label"].slice(-1)}
-          value={recoveredData["value"].slice(-1)}
-          className={"bg-blue-400"}
-        />
-      </div>
-
-      <div className="w-full flex flex-col md:flex-row columns-3 gap-4 my-4">
-        <section className="md:w-1/3">
-          <h2 className="text-2xl">ติดเชื้อ</h2>
-          <Line
-            options={{
-              responsive: true,
-              elements: { point: { radius: 0 } },
-            }}
-            data={casesChartData}
+        <div className="flex flex-col sm:flex-row flex-wrap gap-2 my-8">
+          <ValueCard
+            label={"ติดเชื้อ"}
+            timestamp={casesData["label"].slice(-1)}
+            value={casesData["value"].slice(-1)}
+            className={"bg-red-400"}
           />
-
-          <DataTable data={Object.entries(data.cases)} />
-        </section>
-        <section className="md:w-1/3">
-          <h2 className="text-2xl">เสียชีวิต</h2>
-
-          <Line
-            options={{
-              responsive: true,
-              elements: { point: { radius: 0 } },
-            }}
-            data={deathsChartData}
+          <ValueCard
+            label={"เสียชีวิต"}
+            timestamp={deathsData["label"].slice(-1)}
+            value={deathsData["value"].slice(-1)}
+            className={"bg-slate-400"}
           />
-          <DataTable data={Object.entries(data.deaths)} />
-        </section>
-        <section className="md:w-1/3">
-          <h2 className="text-2xl">หายแล้ว</h2>
-
-          <Line
-            options={{
-              responsive: true,
-              elements: { point: { radius: 0 } },
-            }}
-            data={recoveredChartData}
+          <ValueCard
+            label={"หายแล้ว"}
+            timestamp={recoveredData["label"].slice(-1)}
+            value={recoveredData["value"].slice(-1)}
+            className={"bg-blue-400"}
           />
-          <DataTable data={Object.entries(data.recovered)} />
-        </section>
-      </div>
-    </main>
+        </div>
+
+        <div className="w-full flex flex-col md:flex-row columns-3 gap-4 my-4">
+          <section className="md:w-1/3">
+            <h2 className="text-2xl">ติดเชื้อ</h2>
+            <Line
+              options={{
+                responsive: true,
+                elements: { point: { radius: 0 } },
+              }}
+              data={casesChartData}
+            />
+            <DataTable data={Object.entries(data.cases)} />
+          </section>
+          <section className="md:w-1/3">
+            <h2 className="text-2xl">เสียชีวิต</h2>
+            <Line
+              options={{
+                responsive: true,
+                elements: { point: { radius: 0 } },
+              }}
+              data={deathsChartData}
+            />
+            <DataTable data={Object.entries(data.deaths)} />
+          </section>
+          <section className="md:w-1/3">
+            <h2 className="text-2xl">หายแล้ว</h2>
+            <Line
+              options={{
+                responsive: true,
+                elements: { point: { radius: 0 } },
+              }}
+              data={recoveredChartData}
+            />
+            <DataTable data={Object.entries(data.recovered)} />
+          </section>
+        </div>
+      </main>
+      <footer className="flex flex-col justify-center items-center my-2">
+        <span className="text-center text-slate-500 ">
+          ข้อมูลจาก{" "}
+          <a
+            href="https://disease.sh/docs/#/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline"
+          >
+            disease.sh
+          </a>
+        </span>
+      </footer>
+    </>
   );
 }
 
 function DataTable({ data }) {
   return (
-    <table className="prose w-full">
+    <table className="prose w-full my-4">
       <thead>
         <tr>
           <th>วันที่</th>
